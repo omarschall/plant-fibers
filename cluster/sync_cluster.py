@@ -16,8 +16,8 @@ def sync_cluster(local_module_path='/Users/omarschall/vanilla-rtrl/',
                     '--exclude', 'files',
                     local_module_path, remote_path])
 
-def sync_columbia_cluster(local_module_path='/Users/omarschall/mft-theory/',
-                          module_name='mft-theory',
+def sync_columbia_cluster(local_module_path='/Users/omarschall/plant-fibers/',
+                          module_name='plant-fibers',
                           username='om2382', domain='axon.rc.zi.columbia.edu'):
     """Sync local code with module path on cluster."""
 

@@ -77,7 +77,7 @@ def start_jupyter_notebook(local_module_path='/Users/omarschall/vanilla-rtrl/',
 
     webbrowser.open(url)
 
-def start_axon_jupyter_notebook(project_name='low-rank-dims',
+def start_axon_jupyter_notebook(project_name='meta-cerebellum',
                                 time_in_hours=3,
                                 mem_in_gb=16):
     """Similar deal as above but simpler, using Axon's sjupyter command,

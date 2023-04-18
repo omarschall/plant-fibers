@@ -5,9 +5,9 @@ import pickle
 def submit_job(job_file_path, n_array,
                py_file_name=None,
                id_dependency=None,
-               project_name='low-rank-dims',
+               project_name='meta-cerebellum',
                results_subdir='misc',
-               module_name='mft-theory'):
+               module_name='plant-fibers'):
     """Submit an array job in reference to a particular job file, with a
     specified number of sub-jobs. Creates directories for storing results."""
 
@@ -64,7 +64,7 @@ def submit_job(job_file_path, n_array,
 
 def write_job_file(job_name, py_file_name='main.py',
                    py_args='',
-                   project_name='low-rank-dims',
+                   project_name='meta-cerebellum',
                    results_subdir='misc',
                    nodes=1, ppn=1, mem=16, n_hours=8):
     """Create a job file for running a standard single-main-script job.
@@ -140,7 +140,7 @@ def write_job_file(job_name, py_file_name='main.py',
     return job_path
 
 def unpack_processed_data(job_file_path,
-                          project_name='low-rank-dims',
+                          project_name='meta-cerebellum',
                           results_subdir='misc'):
     """Unpack processed data from an array job."""
 
