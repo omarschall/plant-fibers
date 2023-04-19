@@ -12,7 +12,7 @@ class Outer_Loop:
         self.climbing_fibers = climbing_fibers
         self.plants = plants
 
-    def run(self, datasets, inner_lr, outer_lr, mode='train_CF', monitors=[], reset_cerebellum=False):
+    def run(self, datasets, inner_lr, outer_lr, mode='train_CF', monitors=[], reset_cerebellum=True):
 
         self.mons = {k: [] for k in monitors}
 
@@ -21,7 +21,7 @@ class Outer_Loop:
             if reset_cerebellum:
                 W_h = np.random.normal(0, 1 / np.sqrt(2), (self.n_h, self.n_in))
                 W_o = np.random.normal(0, 1 / np.sqrt(self.n_h), (1, self.n_h + 1))
-                self.cerebellum = Cerebellum(W_h, W_o, self.cerebellum.activation)
+                self.cerebellum.__init__(W_h, W_o, self.cerebellum.activation)
 
             plant = self.plants[i_data]
             inner_loop = Inner_Loop(self.cerebellum, self.climbing_fibers,
@@ -36,3 +36,12 @@ class Outer_Loop:
             else:
                 for k in monitors:
                     self.mons[k] = np.concatenate([self.mons[k], inner_loop.mons[k]], axis=0)
+
+    def test_CF(self, data, plant, test_cerebellum, inner_lr, monitors):
+
+        self.test_cerebellum = test_cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=inner_lr, outer_lr=0)
+        inner_loop.run(data, mode='test_CF', monitors=monitors, verbose=True)
+
+        self.test_mons = inner_loop.mons
