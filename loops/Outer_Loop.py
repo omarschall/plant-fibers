@@ -37,11 +37,18 @@ class Outer_Loop:
                 for k in monitors:
                     self.mons[k] = np.concatenate([self.mons[k], inner_loop.mons[k]], axis=0)
 
-    def test_CF(self, data, plant, test_cerebellum, inner_lr, monitors):
+    def test_CF(self, data, plant, test_cerebellum, inner_lr,
+                train_monitors, test_monitors):
 
+        ### Train our "test" cerebellum
         self.test_cerebellum = test_cerebellum
         inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
                                 inner_lr=inner_lr, outer_lr=0)
-        inner_loop.run(data, mode='test_CF', monitors=monitors, verbose=True)
+        inner_loop.run(data, mode='test_CF', monitors=train_monitors, verbose=False)
+        self.train_mons = inner_loop.mons.copy()
 
-        self.test_mons = inner_loop.mons
+        ### Test our "test" cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=0, outer_lr=0)
+        inner_loop.run(data, mode='test_CB', monitors=test_monitors, verbose=False)
+        self.test_mons = inner_loop.mons.copy()

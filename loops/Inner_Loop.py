@@ -46,28 +46,34 @@ class Inner_Loop:
 
             self.i_x = i_x
 
-            self.x_0 = data['train']['x_0'][i_x]
-            self.x_label = data['train']['x_label'][i_x]
+            if mode != 'test_CB':
+                self.x_0 = data['train']['x_0'][i_x]
+                self.x_label = data['train']['x_label'][i_x]
+            else:
+                self.x_0 = data['test']['x_0'][i_x]
+                self.x_label = data['test']['x_label'][i_x]
 
             # Compute cerebellum output, final state, and reward
             self.u = self.cerebellum.forward_pass(self.x_0, self.x_label)
             self.phi = self.cerebellum.phi.copy()
             self.x_f = self.plant.f(self.x_0, self.u)
-            self.train_error = self.x_f - self.x_label
-            self.R = np.exp(-1 / self.lambda_R * np.abs(self.x_label - self.x_f))
 
-            # Update average reward and control
-            self.R_avg = (1 - self.alpha_avg) * self.R_avg + self.alpha_avg * self.R
+            if mode in ['train_CF', 'test_CF']:
+                self.train_error = self.x_f - self.x_label
+                self.R = np.exp(-1 / self.lambda_R * np.abs(self.x_label - self.x_f))
 
-            # Calculate CF output
-            self.CF = self.climbing_fibers(self.x_0, self.x_label, self.x_f,
-                                           self.u, self.cerebellum.noise,
-                                           self.R, self.R_avg)
-            self.CF_label = -self.x_f / self.u * (self.x_f - self.x_label)
-            self.RL_solution = self.cerebellum.noise * (self.R - self.R_avg)
+                # Update average reward and control
+                self.R_avg = (1 - self.alpha_avg) * self.R_avg + self.alpha_avg * self.R
 
-            # Update cerebellum parameters
-            self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.CF * self.cerebellum.phi_hat
+                # Calculate CF output
+                self.CF = self.climbing_fibers(self.x_0, self.x_label, self.x_f,
+                                               self.u, self.cerebellum.noise,
+                                               self.R, self.R_avg)
+                self.CF_label = -self.x_f / self.u * (self.x_f - self.x_label)
+                self.RL_solution = self.cerebellum.noise * (self.R - self.R_avg)
+
+                # Update cerebellum parameters
+                self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.CF * self.cerebellum.phi_hat
 
             if mode == 'train_CF':
                 # Update CF parameters
@@ -130,6 +136,6 @@ class Inner_Loop:
 
         for key in self.mons:
             try:
-                self.mons[key] = np.array(self.mons[key])
+                self.mons[key] = np.squeeze(np.array(self.mons[key]))
             except ValueError:
                 pass
