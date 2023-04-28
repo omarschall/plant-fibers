@@ -29,7 +29,8 @@ class Inner_Loop:
         self.inner_lr = inner_lr
         self.outer_lr = outer_lr
 
-    def run(self, data, mode='train_CF', monitors=[], verbose=True):
+    def run(self, data, mode='train_CF', monitors=[], verbose=True, exploration_noise=0.01,
+            use_RL=False, use_GD=False):
         """Take in a data dict of x_0 values and x_label values"""
 
         # Assess size of data
@@ -54,7 +55,8 @@ class Inner_Loop:
                 self.x_label = data['test']['x_label'][i_x]
 
             # Compute cerebellum output, final state, and reward
-            self.u = self.cerebellum.forward_pass(self.x_0, self.x_label)
+            self.u = self.cerebellum.forward_pass(self.x_0, self.x_label,
+                                                  exploration_noise=exploration_noise)
             self.phi = self.cerebellum.phi.copy()
             self.x_f = self.plant.f(self.x_0, self.u)
 
@@ -69,11 +71,17 @@ class Inner_Loop:
                 self.CF = self.climbing_fibers(self.x_0, self.x_label, self.x_f,
                                                self.u, self.cerebellum.noise,
                                                self.R, self.R_avg)
-                self.CF_label = -self.x_f / self.u * (self.x_f - self.x_label)
+                #self.CF_label = -self.x_f / self.u * (self.x_f - self.x_label)
+                self.CF_label = -self.plant.f_prime(self.x_0, self.u) * (self.x_f - self.x_label)
                 self.RL_solution = self.cerebellum.noise * (self.R - self.R_avg)
 
                 # Update cerebellum parameters
-                self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.CF * self.cerebellum.phi_hat
+                if use_RL:
+                    self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.RL_solution * self.cerebellum.phi_hat
+                elif use_GD:
+                    self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.CF_label * self.cerebellum.phi_hat
+                else:
+                    self.cerebellum.W_o = self.cerebellum.W_o - self.inner_lr * self.CF * self.cerebellum.phi_hat
 
             if mode == 'train_CF':
                 # Update CF parameters

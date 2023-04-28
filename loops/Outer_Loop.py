@@ -12,15 +12,19 @@ class Outer_Loop:
         self.climbing_fibers = climbing_fibers
         self.plants = plants
 
-    def run(self, datasets, inner_lr, outer_lr, mode='train_CF', monitors=[], reset_cerebellum=True):
+    def run(self, datasets, inner_lr, outer_lr, mode='train_CF', monitors=[],
+            reset_cerebellum=True, reset_kernel=True):
 
         self.mons = {k: [] for k in monitors}
 
         for i_data, data in enumerate(datasets):
 
             if reset_cerebellum:
-                W_h = np.random.normal(0, 1 / np.sqrt(2), (self.n_h, self.n_in))
                 W_o = np.random.normal(0, 1 / np.sqrt(self.n_h), (1, self.n_h + 1))
+                if reset_kernel:
+                    W_h = np.random.normal(0, 1 / np.sqrt(2), (self.n_h, self.n_in))
+                else:
+                    W_h = self.cerebellum.W_h
                 self.cerebellum.__init__(W_h, W_o, self.cerebellum.activation)
 
             plant = self.plants[i_data]
@@ -45,6 +49,40 @@ class Outer_Loop:
         inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
                                 inner_lr=inner_lr, outer_lr=0)
         inner_loop.run(data, mode='test_CF', monitors=train_monitors, verbose=False)
+        self.train_mons = inner_loop.mons.copy()
+
+        ### Test our "test" cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=0, outer_lr=0)
+        inner_loop.run(data, mode='test_CB', monitors=test_monitors, verbose=False)
+        self.test_mons = inner_loop.mons.copy()
+
+    def test_GD(self, data, plant, test_cerebellum, inner_lr,
+                train_monitors, test_monitors):
+
+        ### Train our "test" cerebellum
+        self.test_cerebellum = test_cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=inner_lr, outer_lr=0)
+        inner_loop.run(data, mode='test_CF', monitors=train_monitors, verbose=False,
+                       use_GD=True)
+        self.train_mons = inner_loop.mons.copy()
+
+        ### Test our "test" cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=0, outer_lr=0)
+        inner_loop.run(data, mode='test_CB', monitors=test_monitors, verbose=False)
+        self.test_mons = inner_loop.mons.copy()
+
+    def test_RL(self, data, plant, test_cerebellum, inner_lr,
+                train_monitors, test_monitors, exploration_noise):
+
+        ### Train our "test" cerebellum
+        self.test_cerebellum = test_cerebellum
+        inner_loop = Inner_Loop(self.test_cerebellum, self.climbing_fibers, plant,
+                                inner_lr=inner_lr, outer_lr=0)
+        inner_loop.run(data, mode='test_CF', monitors=train_monitors, verbose=False,
+                       use_RL=True, exploration_noise=exploration_noise)
         self.train_mons = inner_loop.mons.copy()
 
         ### Test our "test" cerebellum
