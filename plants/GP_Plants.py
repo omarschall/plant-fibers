@@ -1,3 +1,4 @@
+from .generate_data import generate_gaussian_random_data
 import numpy as np
 from functools import partial
 from functions import Function
@@ -14,8 +15,8 @@ def plant_derivative_from_GP(x_0, u, x_GP, GP):
 
     return np.interp(u, x_GP[:-1], GP_prime)
 
-def generate_GP_plants(N_plants, lambda_GP=2.0, tau_GP=0.9,
-                       N_u_discrete=100, u_min=-5, u_max=5):
+def generate_GP_plants_and_datasets(N_plants, N_inner, lambda_GP=2.0, tau_GP=0.9,
+                                    N_u_discrete=100, u_min=-5, u_max=5):
 
     u_range = np.linspace(u_min, u_max, N_u_discrete)
 
@@ -40,9 +41,18 @@ def generate_GP_plants(N_plants, lambda_GP=2.0, tau_GP=0.9,
     X = np.random.multivariate_normal(np.zeros(N_u_discrete * N_plants), C, 1).reshape(N_plants, N_u_discrete)
 
     plants = []
+    datasets = []
     for i_plant in range(N_plants):
 
-        plants.append(Function(partial(plant_from_GP, x_GP=u_range, GP=X[i_plant]),
-                               partial(plant_derivative_from_GP, x_GP=u_range, GP=X[i_plant])))
+        GP = X[i_plant]
+        plants.append(Function(partial(plant_from_GP, x_GP=u_range, GP=GP),
+                               partial(plant_derivative_from_GP, x_GP=u_range, GP=GP)))
 
-    return plants
+        #Compute reasonable data range
+        GP_min = np.amin(GP)
+        GP_max = np.amax(GP)
+        mean = (GP_max - GP_min)/2 + GP_min
+        std = np.abs(GP_max - GP_min) / 6
+        datasets.append(generate_gaussian_random_data(N_inner, mean=mean, std=std))
+
+    return plants, datasets

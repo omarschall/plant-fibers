@@ -1,10 +1,12 @@
 import numpy as np
+from tuning_curves import Gaussian_Tuning_Curves
 
 class Climbing_Fibers_1HLMLP:
     """Parameterized by theta = (W_1, W_2), produces training signals
     for the cerebellum. Currently hard-coded as 1 hidden layer MLP."""
 
-    def __init__(self, W_1, W_2, activation, final_output):
+    def __init__(self, W_1, W_2, activation, final_output, spoonfeed_RL=0,
+                 RL_pieces_scale=1, tuning=None):
         """Initialize with the initial values of the input-hidden (W_1)
         and hidden-output (W_2) weights."""
 
@@ -12,6 +14,9 @@ class Climbing_Fibers_1HLMLP:
         self.W_2 = W_2
         self.activation = activation
         self.final_output = final_output
+        self.spoonfeed_RL = spoonfeed_RL
+        self.RL_pieces_scale = RL_pieces_scale
+        self.tuning = tuning
 
         assert W_1.shape[0] == W_2.shape[0] - 1
 
@@ -20,7 +25,15 @@ class Climbing_Fibers_1HLMLP:
     def __call__(self, x_0, x_label, x_f, u, noise, R, R_avg):
         """Return a CF output given the information fed in"""
 
-        self.x_cf = np.concatenate([x_0, x_label, x_f, u, noise, R, R_avg, np.array([1])])
+        self.RL_solution = self.spoonfeed_RL * noise * (R - R_avg)
+        noise *= self.RL_pieces_scale
+        R *= self.RL_pieces_scale
+        R_avg *= self.RL_pieces_scale
+        self.x_cf = np.concatenate([x_0, x_label, x_f, u, noise, R, R_avg, self.RL_solution, np.array([1])])
+
+        if self.tuning is not None:
+            self.x_cf = np.concatenate([self.tuning(self.x_cf[:-1]), np.array([1])])
+
         self.h = self.W_1.dot(self.x_cf)
         self.a = self.activation.f(self.h)
         self.a_hat = np.concatenate([self.a, np.array([1])])

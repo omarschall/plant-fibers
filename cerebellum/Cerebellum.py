@@ -1,10 +1,11 @@
 import numpy as np
+from tuning_curves import Gaussian_Tuning_Curves
 
 class Cerebellum:
     """The forward model, which produces a control signal in the
     cerebellar nuclei."""
 
-    def __init__(self, W_h, W_o, activation):
+    def __init__(self, W_h, W_o, activation, tuning=None):
         """Initialize instance with (fixed) W_h weights for the expansion
         to the GC layer, (trainable) weights W_o for the GC to control
         signal, and elementwise nonlinearity."""
@@ -14,6 +15,7 @@ class Cerebellum:
         self.activation = activation
         self.n_in = W_h.shape[1]
         self.n_h = W_h.shape[0]
+        self.tuning = tuning
 
         # right-handed matrix-vector multiplication
         assert self.W_h.shape[0] == self.W_o.shape[1] - 1
@@ -26,7 +28,10 @@ class Cerebellum:
         them, and maps them forward, eventually returning a value of u."""
 
         # Concatenate initial state with desired final state
-        x = np.concatenate([x_0, x_label])
+        x = np.concatenate([x_0, x_label, np.array([1])])
+
+        if self.tuning is not None:
+            x = np.concatenate([self.tuning(x[:-1]), np.array([1])])
 
         # GC activation
         self.phi = self.activation.f(np.dot(self.W_h, x))
