@@ -1,5 +1,4 @@
 import numpy as np
-from tuning_curves import Gaussian_Tuning_Curves
 
 class Climbing_Fibers_1HLMLP:
     """Parameterized by theta = (W_1, W_2), produces training signals
