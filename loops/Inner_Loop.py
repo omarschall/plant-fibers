@@ -31,7 +31,9 @@ class Inner_Loop:
 
     def run(self, data, mode='train_CF', monitors=[], verbose=True, exploration_noise=0.01,
             use_RL=False, use_GD=False):
-        """Take in a data dict of x_0 values and x_label values"""
+        """Take in a data dict of x_0 values and x_label values, and trains or
+        tests the cerebellum to produce x_f = x_label, while also training
+        the climbing fibers."""
 
         # Assess size of data
         self.N_loop = len(data['train']['x_0'])
@@ -70,8 +72,7 @@ class Inner_Loop:
                 # Calculate CF output
                 self.CF = self.climbing_fibers(self.x_0, self.x_label, self.x_f,
                                                self.u, self.cerebellum.noise,
-                                               self.R, self.R_avg)
-                #self.CF_label = -self.x_f / self.u * (self.x_f - self.x_label)
+                                               self.R, self.R_avg, exploration_noise)
                 self.CF_label = -self.plant.f_prime(self.x_0, self.u) * (self.x_f - self.x_label)
                 self.RL_solution = self.cerebellum.noise * (self.R - self.R_avg)
 

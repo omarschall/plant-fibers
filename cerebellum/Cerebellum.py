@@ -39,6 +39,7 @@ class Cerebellum:
 
         # Control signal output
         self.noise = np.random.normal(0, exploration_noise, (1))
-        self.u = - self.W_o.dot(self.phi_hat) + self.noise
+        self.u_bar = - self.W_o.dot(self.phi_hat)
+        self.u = self.u_bar + self.noise
 
         return self.u.copy()

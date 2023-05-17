@@ -21,19 +21,30 @@ class Climbing_Fibers_1HLMLP:
 
         self.n_h = W_1.shape[1]
 
-    def __call__(self, x_0, x_label, x_f, u, noise, R, R_avg):
+    def __call__(self, x_0, x_label, x_f, u, noise, R, R_avg, exploration_noise=0.01):
         """Return a CF output given the information fed in"""
 
-        self.RL_solution = self.spoonfeed_RL * noise * (R - R_avg)
+        #Rescale RL solution by spoonfeed factor
+        RL_solution = self.spoonfeed_RL * noise * (R - R_avg)
+
+        #Rescale pieces of RL solution by RL pieces factor
         noise *= self.RL_pieces_scale
         R *= self.RL_pieces_scale
         R_avg *= self.RL_pieces_scale
-        self.x_cf = np.concatenate([x_0, x_label, x_f, u, noise, R, R_avg, self.RL_solution, np.array([1])])
 
+        #z-score noise
+        if exploration_noise > 0:
+            noise = noise / exploration_noise
+
+        #Concatenate inputs to climbing fibers
+        self.x_cf = np.concatenate([x_0, x_label, x_f, u,
+                                    noise, R, R_avg, RL_solution, np.array([1])])
+
+        #Place all values into turning curves
         if self.tuning is not None:
-            noise *= 100
             self.x_cf = np.concatenate([self.tuning(self.x_cf[:-1]), np.array([1])])
 
+        #Compute forward pass of the CF system
         self.h = self.W_1.dot(self.x_cf)
         self.a = self.activation.f(self.h)
         self.a_hat = np.concatenate([self.a, np.array([1])])
@@ -54,6 +65,9 @@ class Climbing_Fibers_1HLMLP:
         return [self.dPsi_dW_1.copy(), self.dPsi_dW_2.copy()]
 
     def update_theta(self, error, plant_derivative, phi, phi_test, dPsi_dW, outer_lr):
+        """Update CF params based on the performance error, backpropagated to
+        each layer."""
+
         dL_dPsi = np.sum(error * plant_derivative * phi * phi_test)
 
         self.dL_dW_1 = dL_dPsi * dPsi_dW[0]
@@ -63,5 +77,8 @@ class Climbing_Fibers_1HLMLP:
         self.W_2 = np.squeeze(self.W_2 - outer_lr * self.dL_dW_2)
 
     def update_theta_on_gradient(self, CF_error, dPsi_dW, outer_lr):
+        """Update CF params based on matching a given error signal CF_error,
+        e.g. the difference between the CF output and gradient descent soln."""
+
         self.W_1 = np.squeeze(self.W_1 - outer_lr * CF_error * dPsi_dW[0])
         self.W_2 = np.squeeze(self.W_2 - outer_lr * CF_error * dPsi_dW[1])

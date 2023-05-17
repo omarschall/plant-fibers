@@ -6,8 +6,10 @@ from functools import partial
 from functions import Function
 from scipy.stats import beta
 
-def generate_beta_plants_and_datasets(N_plants, N_inner, N_u_discrete, u_min=-3, u_max=3,
-                                      concavity_max=10, gamma=1):
+def generate_beta_plants_and_datasets(N_plants, N_inner, N_u_discrete,
+                                      u_min=-1, u_max=1, gamma=1):
+    """Generate the 'onion' family of plants by beta-CDF-like functions and
+    varying the concavity and the sign of the slopes."""
 
     u_range = np.linspace(u_min, u_max, N_u_discrete)
     plants = []
