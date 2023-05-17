@@ -87,7 +87,8 @@ class Inner_Loop:
                 # Update CF parameters
                 self.x_0_test = data['test']['x_0'][i_x]
                 self.x_label_test = data['test']['x_label'][i_x]
-                self.u_test = self.cerebellum.forward_pass(self.x_0_test, self.x_label_test)
+                self.u_test = self.cerebellum.forward_pass(self.x_0_test, self.x_label_test,
+                                                           exploration_noise=exploration_noise)
                 self.phi_test = self.cerebellum.phi.copy()
                 self.x_f_test = self.plant.f(self.x_0_test, self.u_test)
                 self.error = self.x_f_test - self.x_label_test

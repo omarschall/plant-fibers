@@ -22,10 +22,11 @@ class Outer_Loop:
                 if reset_cerebellum:
                     W_o = np.random.normal(0, 1 / np.sqrt(self.n_h), (1, self.n_h + 1))
                     if reset_kernel:
-                        W_h = np.random.normal(0, 1 / np.sqrt(2), (self.n_h, self.n_in))
+                        W_h = np.random.normal(0, 1 / np.sqrt(self.n_in), (self.n_h, self.n_in))
                     else:
                         W_h = self.cerebellum.W_h
-                    self.cerebellum.__init__(W_h, W_o, self.cerebellum.activation)
+                    self.cerebellum.__init__(W_h, W_o, self.cerebellum.activation,
+                                             tuning=self.cerebellum.tuning)
 
                 plant = self.plants[i_data]
                 inner_loop = Inner_Loop(self.cerebellum, self.climbing_fibers,

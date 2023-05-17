@@ -31,6 +31,7 @@ class Climbing_Fibers_1HLMLP:
         self.x_cf = np.concatenate([x_0, x_label, x_f, u, noise, R, R_avg, self.RL_solution, np.array([1])])
 
         if self.tuning is not None:
+            noise *= 100
             self.x_cf = np.concatenate([self.tuning(self.x_cf[:-1]), np.array([1])])
 
         self.h = self.W_1.dot(self.x_cf)

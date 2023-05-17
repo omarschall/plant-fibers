@@ -7,7 +7,7 @@ from functions import Function
 from scipy.stats import beta
 
 def generate_beta_plants_and_datasets(N_plants, N_inner, N_u_discrete, u_min=-3, u_max=3,
-                                      concavity_max=10):
+                                      concavity_max=10, gamma=1):
 
     u_range = np.linspace(u_min, u_max, N_u_discrete)
     plants = []
@@ -15,7 +15,7 @@ def generate_beta_plants_and_datasets(N_plants, N_inner, N_u_discrete, u_min=-3,
     for i_plant in range(N_plants):
 
         #concavity = np.random.uniform(-concavity_max, concavity_max)
-        concavity = np.random.normal(0, 2)
+        concavity = np.random.normal(0, 2*gamma)
         a = 1 + relu.f(concavity)
         b = 1 + relu.f(-concavity)
         GP = 2 * beta.cdf((u_range + 1) / 2, a=a, b=b) - 1
