@@ -3,7 +3,7 @@ import numpy as np
 
 class Outer_Loop:
 
-    def __init__(self, cerebellum, climbing_fibers, plants, reset_cerebellum=True,
+    def __init__(self, cerebellum, climbing_fibers, plants, reset_output=True,
                 reset_kernel=True):
         """Initialize with an example cerebellum, the climbing fibers to be trained
         over the outer loop, and the family of plants to train on."""
@@ -13,7 +13,7 @@ class Outer_Loop:
         self.n_h = cerebellum.n_h
         self.climbing_fibers = climbing_fibers
         self.plants = plants
-        self.reset_cerebellum = reset_cerebellum
+        self.reset_output = reset_output
         self.reset_kernel = reset_kernel
 
     def run(self, datasets, inner_lr, outer_lr, N_epochs=1, mode='train_CF', monitors=[],
@@ -26,7 +26,7 @@ class Outer_Loop:
         for i_epoch in range(N_epochs):
             for i_data, data in enumerate(datasets):
 
-                if self.reset_cerebellum:
+                if self.reset_output:
                     self.reset_cerebellum()
 
                 plant = self.plants[i_data]
