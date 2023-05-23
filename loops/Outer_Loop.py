@@ -129,12 +129,14 @@ class Outer_Loop:
             cf_sgd_corr = np.corrcoef(self.train_mons['CF'], self.train_mons['CF_label'])[0, 1]
             cf_rl_corr = np.corrcoef(self.train_mons['CF'], self.train_mons['RL_solution'])[0, 1]
 
+            self.reset_cerebellum()
             self.test_GD(data, plant, self.cerebellum, inner_lr=inner_lr,
                          train_monitors=[],
                          test_monitors=['x_label', 'x_f'],
                          exploration_noise=exploration_noise)
             gd_loss = np.mean(np.square(self.test_mons['x_f'] - self.test_mons['x_label']))
 
+            self.reset_cerebellum()
             self.test_RL(data, plant, self.cerebellum, inner_lr=inner_lr,
                          train_monitors=[],
                          test_monitors=['x_label', 'x_f'],
@@ -147,4 +149,4 @@ class Outer_Loop:
             processed_data[3, i_plant] = cf_sgd_corr
             processed_data[4, i_plant] = cf_rl_corr
 
-            return processed_data
+        return processed_data
