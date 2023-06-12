@@ -66,5 +66,9 @@ def plot_test_plant_results(outer_loop, plants, datasets, exploration_noise,
         ax[i_x, i_y].set_title('loss = {0:.2f}'.format(test_loss))
         ax[i_x, i_y].set_xlim([-1,1])
         ax[i_x, i_y].set_ylim([-1,1])
+        ax[i_x, i_y].set_xticks([])
+        ax[i_x, i_y].set_yticks([])
+    ax[0, 0].set_xlabel('$u$')
+    ax[0, 0].set_ylabel('$x_f$')
 
     return fig
